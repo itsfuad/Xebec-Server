@@ -8,6 +8,20 @@
 #include <chrono>
 #include <regex>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <WS2spi.h>
+#define SOCKET_CLOSE(sock) closesocket(sock)
+#else
+#include <unistd.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#define SOCKET int
+#define INVALID_SOCKET -1
+#define SOCKET_CLOSE(sock) close(sock)
+#endif
+
 //Request and Response classes
 class Request {
 public:
