@@ -110,12 +110,12 @@ public:
         }
     }
 
-    ~http_server() {
+    ~http_server() noexcept {
         WSACleanup();
     }
 
     // Set the public directory path
-    void publicDir(const std::string& dir) {
+    inline void publicDir(const std::string& dir) {
         publicDirPath = dir;
     }
 
