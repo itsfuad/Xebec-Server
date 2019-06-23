@@ -320,6 +320,10 @@ int main() {
         res << "Contact page";
     });
 
+    server.get("/echo/:message", [](Request& req, Response& res) {
+        res << "Echo: " << req.params["message"];
+    });
+
     server.post("/post", [](Request& req, Response& res) {
         res << "POST request";
     });
