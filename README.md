@@ -38,9 +38,14 @@ Routes can be added using the `get()` and `post()` methods of the `http_server` 
 
 ```cpp
 int main() {
+
     http_server server;
+
+    server.publicDir("public");
+
     server.get("/", [](Request& req, Response& res) {
-        res << "<h1>Hello, World!</h1><p>This is a simple HTTP server written in C++.</p>";
+        //send the html file
+        res.html("index.html");
     });
 
     server.get("/about", [](Request& req, Response& res) {
@@ -57,6 +62,10 @@ int main() {
 
     server.post("/post/:id", [](Request& req, Response& res) {
         res << "POST request with id: " << req.params["id"];
+    });
+
+    server.get("/json", [](Request& req, Response& res) {
+        res.json("{\"name\": \"John\", \"age\": 30, \"city\": \"New York\"}");
     });
 
     server.start(4119);
