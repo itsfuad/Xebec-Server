@@ -28,6 +28,7 @@ This is a simple HTTP server implementation written in C++ using the Winsock API
 - For Unix-like systems, standard POSIX sockets are used, so no additional linking is required.
 
 3. Run the compiled executable:
+`g++ -o http.exe http.cpp -lws2_32 -std=c++17` I used GCC here.
 
 
 By default, the server listens on port 4119. You can change the port by modifying the `start()` function call in the `main()` function.
