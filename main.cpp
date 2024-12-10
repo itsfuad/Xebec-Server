@@ -25,13 +25,8 @@
 //Request and Response classes
 class Request {
 public:
-    std::string method; // GET, POST, PUT, DELETE
-    std::string path; // /about, /contact
-    std::string body; 
-    std::map<std::string, std::string> headers;
     std::map<std::string, std::string> query;
     std::map<std::string, std::string> params; // /post/:id
-
     Request() {}
 };
 
@@ -81,9 +76,8 @@ public:
     }
 
     //Response constructor
-    Response() {
-        status = "200 OK\r\n";
-    }
+    Response() : status("200 OK\r\n")
+    {}
 };
 
 // Split a string by a delimiter. Used to parse the request path.
@@ -132,7 +126,7 @@ public:
         service.sin_addr.s_addr = INADDR_ANY; // IP address of the server
         service.sin_port = htons(port); // The port number
 
-        if (bind(listen_socket, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR) {
+        if (bind(listen_socket, reinterpret_cast<SOCKADDR*>(&service), sizeof(service)) == SOCKET_ERROR) {
             std::cerr << "bind() failed." << std::endl;
             SOCKET_CLOSE(listen_socket);
             return;
@@ -193,7 +187,7 @@ private:
 
         if (path.find('?') != std::string::npos) {
             std::string query_string = path.substr(path.find('?') + 1);
-            path = path.substr(0, path.find('?'));
+            path.erase(path.find('?'));
             std::istringstream query_iss(query_string);
             std::string query_pair;
             while (std::getline(query_iss, query_pair, '&')) {
@@ -205,7 +199,7 @@ private:
 
 
         std::smatch match;
-        for (auto& route : routes[method]) {
+        for (const auto& route : routes[method]) {
             std::string route_path = route.first;
 
             if (std::regex_match(path, match, std::regex(route_path))) {
@@ -307,32 +301,32 @@ int main() {
     server.publicDir("public"); // Set the public directory
 
     // Add a new route
-    server.get("/", [](Request& req, Response& res) {
+    server.get("/", [](const Request& req, Response& res) {
         //send the html file
         res.html("index.html");
     });
 
-    server.get("/about", [](Request& req, Response& res) {
+    server.get("/about", [](const Request& req, Response& res) {
         res.status_code(301) << "About page";
     });
 
-    server.get("/contact", [](Request& req, Response& res) {
+    server.get("/contact", [](const Request& req, Response& res) {
         res << "Contact page";
     });
 
-    server.get("/echo/:message", [](Request& req, Response& res) {
-        res << "Echo: " << req.params["message"];
+    server.get("/echo/:message", [](const Request& req, Response& res) {
+        res << "Echo: " << req.params.at("message");
     });
 
-    server.post("/post", [](Request& req, Response& res) {
+    server.post("/post", [](const Request& req, Response& res) {
         res << "POST request";
     });
 
-    server.post("/post/:id", [](Request& req, Response& res) {
-        res << "POST request with id: " << req.params["id"];
+    server.post("/post/:id", [](const Request& req, Response& res) {
+        res << "POST request with id: " << req.params.at("id");
     });
 
-    server.get("/json", [](Request& req, Response& res) {
+    server.get("/json", [](const Request& req, Response& res) {
         res.json("{\"name\": \"John\", \"age\": 30, \"city\": \"New York\"}");
     });
 
