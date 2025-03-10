@@ -2,14 +2,17 @@
 #include <iostream>
 
 int main() {
-    xebec::http_server server;
+    xebec::ServerConfig config;
+    config.port = 4119;
+    xebec::http_server server(config);
     
     // Set public directory for static files
     server.publicDir("public");
     
     // Add middleware for logging
-    server.use([](xebec::Request& req, xebec::Response& res) {
+    server.use([](xebec::Request& req, xebec::Response& res, xebec::MiddlewareContext::NextFunction next) {
         std::cout << "Request received" << std::endl;
+        next();
     });
     
     // Add routes
@@ -42,6 +45,6 @@ int main() {
     });
     
     // Start server
-    server.start(4119);
+    server.start();
     return 0;
 }
