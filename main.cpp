@@ -1,4 +1,4 @@
-#include "xebec_server.hpp"
+#include "include/xebec/xebec.hpp"
 #include <iostream>
 
 int main() {
