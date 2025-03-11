@@ -382,14 +382,23 @@ private:
         while (true) {
             try {
                 WebSocketFrame frame = read_websocket_frame(client_socket);
-                if (frame.opcode == WSOpCode::CLOSE) break;
                 
-                auto it = ws_handlers_.find(req.path);
-                if (it != ws_handlers_.end()) {
-                    it->second(frame, [client_socket](const WebSocketFrame& response_frame) {
-                        send_websocket_frame(client_socket, response_frame);
-                    });
+                switch (frame.opcode) {
+                    case WSOpCode::CLOSE:
+                        return;
+                    case WSOpCode::PING:
+                        frame.opcode = WSOpCode::PONG;
+                        send_websocket_frame(client_socket, frame);
+                        break;
+                    default:
+                        auto it = ws_handlers_.find(req.path);
+                        if (it != ws_handlers_.end()) {
+                            it->second(frame, [client_socket](const WebSocketFrame& response_frame) {
+                                send_websocket_frame(client_socket, response_frame);
+                            });
+                        }
                 }
+                
             } catch (const std::exception& e) {
                 break;
             }
@@ -444,6 +453,7 @@ private:
         return frame;
     }
 
+    public:
     static void send_websocket_frame(SOCKET socket, const WebSocketFrame& frame) {
         char header[2] = {
             static_cast<char>((frame.fin << 7) | static_cast<uint8_t>(frame.opcode)),
