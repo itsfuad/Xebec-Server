@@ -41,7 +41,7 @@ int main() {
         res << "POST request with id: " << req.params.at("id");
     });
     
-    server.get("/json", [](xebec::Request& req, xebec::Response& res) {
+    server.get("/json", [](const xebec::Request& req, xebec::Response& res) {
         res.json("{\"name\": \"John\", \"age\": 30, \"city\": \"New York\"}");
     });
     

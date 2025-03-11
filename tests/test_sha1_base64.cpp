@@ -28,7 +28,6 @@ void test_base64() {
 }
 
 void test_sha1() {
-    
     std::string input = "hello World. This is a sample string to test SHA1 hashing";
 
     // Create SHA1 object
@@ -50,8 +49,32 @@ void test_sha1() {
     }
 }
 
+void test_websocket_accept() {
+    std::string key = "dGhlIHNhbXBsZSBub25jZQ=="; // "the sample nonce" in base64
+    std::string expected_accept = "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=";
+
+    // Generate WebSocket accept key
+    const std::string magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    std::string combined = key + magic;
+    SHA1 sha1;
+    sha1.update(combined);
+    std::vector<uint8_t> hash_bytes = sha1.final_bytes();
+    std::string accept_key = xebec::base64_encode(hash_bytes.data(), hash_bytes.size());
+
+    std::cout << "WebSocket Accept Key: " << accept_key << std::endl;
+    std::cout << "Expected Accept Key: " << expected_accept << std::endl;
+
+    // Verify results
+    if (accept_key == expected_accept) {
+        std::cout << "WebSocket Accept Test Passed" << std::endl;
+    } else {
+        std::cout << "WebSocket Accept Test Failed" << std::endl;
+    }
+}
+
 int main() {
     test_base64();
     test_sha1();
+    test_websocket_accept();
     return 0;
 }

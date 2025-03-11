@@ -354,17 +354,10 @@ private:
 
     std::string generate_websocket_accept(const std::string& key) {
         const std::string magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-        
-        // Decode base64 key
-        std::vector<uint8_t> key_bytes = base64_decode(key);
-    
-        // Concatenate key and magic string
-        std::string combined(key_bytes.begin(), key_bytes.end());
-        combined += magic;
     
         // Compute SHA-1 hash
         SHA1 sha1;
-        sha1.update(combined);
+        sha1.update(key + magic);
         std::vector<uint8_t> hash_bytes = sha1.final_bytes();
     
         // Encode the hash in base64
@@ -381,8 +374,8 @@ private:
         std::string accept_key = generate_websocket_accept(key);
         Response res(publicDirPath);
         res.status_code(101)
-        .header("Connection", "upgrade")
            .header("Upgrade", "websocket")
+           .header("Connection", "Upgrade") // Ensure 'Upgrade' is capitalized
            .header("Sec-WebSocket-Accept", accept_key);
         send_response(client_socket, res);
 
