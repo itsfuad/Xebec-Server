@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Xebec WebSocket Chat</title>
+    <style>
+        #messages { 
+            height: 300px; 
+            overflow-y: auto; 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            margin-bottom: 10px; 
+        }
+        .message { margin: 5px 0; }
+        .system { color: #666; }
+        .user { color: #000; }
+    </style>
+</head>
+<body>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type a message...">
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:8080/chat'); // Ensure the URL matches the server port
+        const messages = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+
+        ws.onopen = () => {
+            appendMessage('System', 'Connected to chat server');
+        };
+
+        ws.onmessage = (event) => {
+            appendMessage('User', event.data);
+        };
+
+        ws.onclose = () => {
+            appendMessage('System', 'Disconnected from chat server');
+        };
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message && ws.readyState === WebSocket.OPEN) {
+                ws.send(message);
+                messageInput.value = '';
+            }
+        }
+
+        function appendMessage(sender, text) {
+            const div = document.createElement('div');
+            div.className = `message ${sender.toLowerCase()}`;
+            div.textContent = `${sender}: ${text}`;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>

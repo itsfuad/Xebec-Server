@@ -186,6 +186,11 @@ private:
             std::cout << "Parsed request - Method: " << req.method 
                       << ", Path: " << req.path << std::endl;
             
+            if (req.get_header("Upgrade") == "websocket") {
+                handle_websocket(req, client_socket);
+                return;
+            }
+
             MiddlewareContext ctx(req, res);
             for (const auto& middleware : middlewares_) {
                 ctx.add(middleware);
@@ -347,6 +352,26 @@ private:
         send(client_socket, res.c_str(), res.size(), 0);
     }
 
+    std::string generate_websocket_accept(const std::string& key) {
+        const std::string magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+        
+        // Decode base64 key
+        std::vector<uint8_t> key_bytes = base64_decode(key);
+    
+        // Concatenate key and magic string
+        std::string combined(key_bytes.begin(), key_bytes.end());
+        combined += magic;
+    
+        // Compute SHA-1 hash
+        SHA1 sha1;
+        sha1.update(combined);
+        std::vector<uint8_t> hash_bytes = sha1.final_bytes();
+    
+        // Encode the hash in base64
+        return base64_encode(hash_bytes.data(), hash_bytes.size());
+    }
+    
+
     void handle_websocket(const Request& req, SOCKET client_socket) {
         std::string key = req.get_header("Sec-WebSocket-Key");
         if (key.empty()) {
@@ -356,15 +381,15 @@ private:
         std::string accept_key = generate_websocket_accept(key);
         Response res(publicDirPath);
         res.status_code(101)
+        .header("Connection", "upgrade")
            .header("Upgrade", "websocket")
-           .header("Connection", "Upgrade")
            .header("Sec-WebSocket-Accept", accept_key);
         send_response(client_socket, res);
 
         while (true) {
             try {
                 WebSocketFrame frame = read_websocket_frame(client_socket);
-                if (frame.opcode == 0x8) break;
+                if (frame.opcode == WSOpCode::CLOSE) break;
                 
                 auto it = ws_handlers_.find(req.path);
                 if (it != ws_handlers_.end()) {
@@ -378,13 +403,6 @@ private:
         }
     }
 
-    std::string generate_websocket_accept(const std::string& key) {
-        const std::string magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-        std::string combined = key + magic;
-        std::string hash = sha1(combined);
-        return base64_encode(reinterpret_cast<const unsigned char*>(hash.c_str()), hash.length());
-    }
-
     WebSocketFrame read_websocket_frame(SOCKET socket) {
         WebSocketFrame frame{};
         unsigned char header[2];
@@ -394,7 +412,7 @@ private:
         frame.rsv1 = (header[0] & 0x40) != 0;
         frame.rsv2 = (header[0] & 0x20) != 0;
         frame.rsv3 = (header[0] & 0x10) != 0;
-        frame.opcode = header[0] & 0x0F;
+        frame.opcode = static_cast<WSOpCode>(header[0] & 0x0F);
         frame.mask = (header[1] & 0x80) != 0;
         frame.payload_length = header[1] & 0x7F;
 
@@ -435,7 +453,7 @@ private:
 
     static void send_websocket_frame(SOCKET socket, const WebSocketFrame& frame) {
         char header[2] = {
-            static_cast<char>((frame.fin << 7) | frame.opcode),
+            static_cast<char>((frame.fin << 7) | static_cast<uint8_t>(frame.opcode)),
             static_cast<char>((frame.mask << 7) | (frame.payload.size() & 0x7F))
         };
         send(socket, header, 2, 0);
@@ -445,4 +463,4 @@ private:
     }
 };
 
-} // namespace xebec 
+} // namespace xebec

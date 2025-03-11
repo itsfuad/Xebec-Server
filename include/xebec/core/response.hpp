@@ -11,7 +11,7 @@ public:
     std::string headers;   // Response headers
     std::string public_dir;  // Public directory path
 
-    Response(const std::string& public_dir = "") : status("200 OK\r\n"), public_dir(public_dir) {}
+    explicit Response(const std::string& public_dir = "") : status("200 OK\r\n"), public_dir(public_dir) {}
 
     template <typename T>
     Response& operator<<(const T& data) {

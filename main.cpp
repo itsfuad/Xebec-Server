@@ -2,6 +2,7 @@
 #include <iostream>
 
 int main() {
+
     xebec::ServerConfig config;
     config.port = 4119;
     xebec::http_server server(config);
@@ -10,21 +11,21 @@ int main() {
     server.publicDir("public");
     
     // Add middleware for logging
-    server.use([](xebec::Request& req, xebec::Response& res, xebec::MiddlewareContext::NextFunction next) {
+    server.use([](const xebec::Request& req, const xebec::Response& res, xebec::MiddlewareContext::NextFunction next) {
         std::cout << "Request received" << std::endl;
         next();
     });
     
     // Add routes
-    server.get("/", [](xebec::Request& req, xebec::Response& res) {
+    server.get("/", [](const xebec::Request& req, xebec::Response& res) {
         res.html("index.html");
     });
     
-    server.get("/about", [](xebec::Request& req, xebec::Response& res) {
+    server.get("/about", [](const xebec::Request& req, xebec::Response& res) {
         res.status_code(301) << "About page";
     });
     
-    server.get("/contact", [](xebec::Request& req, xebec::Response& res) {
+    server.get("/contact", [](const xebec::Request& req, xebec::Response& res) {
         res << "Contact page";
     });
     
@@ -32,7 +33,7 @@ int main() {
         res << "Echo: " << req.params.at("message");
     });
     
-    server.post("/post", [](xebec::Request& req, xebec::Response& res) {
+    server.post("/post", [](const xebec::Request& req, xebec::Response& res) {
         res << "POST request";
     });
     
