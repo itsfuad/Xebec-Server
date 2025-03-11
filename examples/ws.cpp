@@ -24,7 +24,7 @@ int main() {
 
     server.publicDir("public");
 
-    server.ws("/chat", [](xebec::WebSocketFrame& frame, std::function<void(const xebec::WebSocketFrame&)> send) {
+    server.ws("/chat", [](const xebec::WebSocketFrame& frame, std::function<void(const xebec::WebSocketFrame&)> send) {
         std::string message(frame.payload.begin(), frame.payload.end());
         std::cout << "Received message: " << message << std::endl;
         broadcast(message);

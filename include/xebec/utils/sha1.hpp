@@ -8,7 +8,11 @@
 
 class SHA1 {
 public:
-    SHA1() { reset(); }
+    SHA1() { 
+        reset();
+        //init buffer
+        memset(buffer, 0, 64);
+    }
 
     void update(const std::string& data) {
         update(reinterpret_cast<const uint8_t*>(data.c_str()), data.size());
@@ -86,7 +90,7 @@ private:
 
         processChunk(buffer);
 
-        uint32_t hashValues[] = { h0, h1, h2, h3, h4 };
+        const uint32_t hashValues[] = { h0, h1, h2, h3, h4 };
         for (int i = 0; i < 5; i++) {
             for (int j = 3; j >= 0; j--) {
                 digest[i * 4 + (3 - j)] = (hashValues[i] >> (j * 8)) & 0xFF;
