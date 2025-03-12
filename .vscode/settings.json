@@ -85,5 +85,9 @@
         "ranges": "cpp",
         "span": "cpp",
         "set": "cpp"
+    },
+    "sonarlint.connectedMode.project": {
+        "connectionId": "SonarLint-Visual Studio Code",
+        "projectKey": "itsfuad_Xebec-Server"
     }
 }
