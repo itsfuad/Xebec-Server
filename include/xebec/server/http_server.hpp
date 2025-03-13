@@ -457,7 +457,7 @@ private:
     static void send_websocket_frame(SOCKET socket, const WebSocketFrame& frame) {
         char header[2] = {
             static_cast<char>((frame.fin << 7) | static_cast<uint8_t>(frame.opcode)),
-            static_cast<char>((0 << 7) | (frame.payload.size() & 0x7F))
+            static_cast<char>(frame.payload.size() & 0x7F)
         };
         send(socket, header, 2, 0);
         if (!frame.payload.empty()) {
